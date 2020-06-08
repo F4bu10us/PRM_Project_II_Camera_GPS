@@ -1,0 +1,2 @@
+rootProject.name='PRM_Project_II_Camera_GPS'
+include ':app'
