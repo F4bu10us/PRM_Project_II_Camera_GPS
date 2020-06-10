@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.prm_project_ii_camera_gps">
 
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <uses-feature android:name="android.hardware.camera.any" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_project_2_camera_and_gps_square"
@@ -9,16 +15,28 @@
         android:roundIcon="@mipmap/ic_project_2_camera_and_gps_circle"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.MainCameraActivity">
+        <service
+            android:name=".activities.MainCameraActivity"
+            android:foregroundServiceType="location">
+        <!-- Any inner elements would go here. -->
+        </service>
+
+        <activity android:name=".activities.MainCameraActivity"
+            android:noHistory="true"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.GalleryActivity">
+        <activity android:name=".activities.GalleryActivity"
+            android:noHistory="true"
+            >
         </activity>
-        <activity android:name=".activities.ConfigurationActivity">
+        <activity android:name=".activities.ConfigurationActivity"
+            android:noHistory="true"
+            >
         </activity>
     </application>
 
