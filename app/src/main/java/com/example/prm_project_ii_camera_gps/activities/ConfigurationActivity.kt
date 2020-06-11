@@ -19,6 +19,7 @@ class ConfigurationActivity : AppCompatActivity() {
             MainCameraActivity::class.java,
             GalleryActivity::class.java
         ))
+
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {

@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <uses-feature android:name="android.hardware.camera.any" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -37,6 +38,8 @@
         <activity android:name=".activities.ConfigurationActivity"
             android:noHistory="true"
             >
+        </activity>
+        <activity android:name=".activities.PhotoPreviewActivity">
         </activity>
     </application>
 

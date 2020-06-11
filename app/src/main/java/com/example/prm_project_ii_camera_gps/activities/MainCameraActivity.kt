@@ -4,8 +4,10 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MotionEvent
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.Geocoder
 import android.location.Location
 import android.util.Log
@@ -35,9 +37,9 @@ class MainCameraActivity : AppCompatActivity() {
     private var preview: Preview? = null
     private var imageCapture: ImageCapture? = null
     private var camera: Camera? = null
+    private lateinit var outputDirectory: File
 
     private  lateinit var gesture : GestureDetectorCompat
-    private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,9 +62,18 @@ class MainCameraActivity : AppCompatActivity() {
 
         camera_capture_button.setOnClickListener { takePhoto() }
 
-        outputDirectory = getOutputDirectory()
+        outputDirectory = getOutputDirectory(this)
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        if(PHOTOS_LIST.isEmpty())
+            loadData()
+    }
+
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        this.gesture.onTouchEvent(event)
+        return super.onTouchEvent(event)
     }
 
     private fun startCamera() {
@@ -84,9 +95,9 @@ class MainCameraActivity : AppCompatActivity() {
 
                 camera = cameraProvider.bindToLifecycle(
                     this, cameraSelector, preview, imageCapture)
-                preview?.setSurfaceProvider(viewFinder.createSurfaceProvider(/*camera?.cameraInfo*/))
+                preview?.setSurfaceProvider(viewFinder.createSurfaceProvider())
             } catch(exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
+                Log.e("TEST", "Use case binding failed", exc)
             }
 
         }, ContextCompat.getMainExecutor(this))
@@ -106,6 +117,7 @@ class MainCameraActivity : AppCompatActivity() {
                         fusedLocationClient.lastLocation
                             .addOnSuccessListener { location : Location? ->
                                 bitmap = WaterMarkDrawer.putWaterMark(bitmap,  getLocationWaterMark(location))
+                                PHOTOS_LIST.add(bitmap)
                                 savePhoto(bitmap)
                             }
                         }
@@ -143,7 +155,7 @@ class MainCameraActivity : AppCompatActivity() {
                         }
                     } catch (e: Exception) {
                         Toast.makeText(baseContext, "Save failed", Toast.LENGTH_SHORT).show()
-                        Log.e(TAG, "Save failed", e)
+                        Log.e("TEST", "Save failed", e)
                     }
 
                     val msg = "Photo capture succeeded: $photoFile"
@@ -158,13 +170,6 @@ class MainCameraActivity : AppCompatActivity() {
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
             baseContext, it) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun getOutputDirectory(): File {
-        val mediaDir = externalMediaDirs.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() } }
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else filesDir
     }
 
     override fun onRequestPermissionsResult(
@@ -182,21 +187,40 @@ class MainCameraActivity : AppCompatActivity() {
         }
     }
 
+
+    private fun loadData() {
+        val outputDirectory = getOutputDirectory(this)
+        val options =  BitmapFactory.Options()
+        options.inPreferredConfig = Bitmap.Config.RGB_565
+        outputDirectory.let {
+            if (!outputDirectory.listFiles().isNullOrEmpty()) {
+                PHOTOS_LIST.addAll(
+                    outputDirectory.listFiles()
+                        .map {BitmapFactory.decodeFile(it.path, options)}
+                        .toMutableList()
+                )
+            }
+        }
+    }
+
     companion object {
-        private const val TAG = "CameraXBasic"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.READ_EXTERNAL_STORAGE
         )
-    }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        this.gesture.onTouchEvent(event)
-        return super.onTouchEvent(event)
-    }
+        var PHOTOS_LIST = mutableListOf<Bitmap>()
 
+        fun getOutputDirectory(context :Context): File {
+            val mediaDir = context.externalMediaDirs.firstOrNull()?.let {
+                File(it, context.getString(R.string.app_name)).apply { mkdirs() } }
+            return if (mediaDir != null && mediaDir.exists())
+                mediaDir else context.filesDir
+        }
+    }
 
 }

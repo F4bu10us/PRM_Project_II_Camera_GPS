@@ -23,7 +23,6 @@ class MyCustomGestureDetector<L,R>(
     ): Boolean {
         if(velocityX>3000)onSwipeLeft()
         else if(velocityX<-3000)onSwipeRight()
-//        Log.d(DEBUG_TAG, "onFling: $velocityX $velocityY")
         return true
     }
 
